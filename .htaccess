@@ -2,20 +2,3 @@
 PassengerEnabled On
 PassengerAppRoot /home/bmbrenov/travelluxescent.com
 PassengerPython /home/bmbrenov/travelluxescent.com/venv/bin/python3
-
-# Security headers
-Header always set X-Content-Type-Options "nosniff"
-Header always set X-Frame-Options "SAMEORIGIN"
-Header always set X-XSS-Protection "1; mode=block"
-
-# Static/Media files served by Apache
-Alias /static/ /home/bmbrenov/travelluxescent.com/staticfiles/
-Alias /media/ /home/bmbrenov/travelluxescent.com/media/
-
-<Directory /home/bmbrenov/travelluxescent.com/staticfiles>
-    Require all granted
-</Directory>
-
-<Directory /home/bmbrenov/travelluxescent.com/media>
-    Require all granted
-</Directory>
