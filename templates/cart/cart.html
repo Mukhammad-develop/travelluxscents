@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Your Cart — {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-6">
+    <h1 class="font-display text-2xl font-bold mb-6">Your Cart</h1>
+
+    {% if cart_items or discovery_items %}
+
+    <!-- Free Delivery Progress -->
+    <div class="mb-6 p-4 bg-gray-50 rounded-xl">
+        {% if qualifies_free_delivery %}
+        <div class="flex items-center gap-2 text-green-600">
+            <span class="text-lg">🎉</span>
+            <span class="text-sm font-semibold">You qualify for FREE delivery!</span>
+        </div>
+        {% else %}
+        <p class="text-sm text-gray-600 mb-2">
+            Spend <strong class="text-gold-600">£{{ remaining_for_free|floatformat:2 }}</strong> more for <strong>FREE delivery</strong>
+        </p>
+        <div class="w-full bg-gray-200 rounded-full h-2">
+            {% widthratio cart.grand_total free_threshold 100 as progress %}
+            <div class="bg-gold-500 h-2 rounded-full transition-all" style="width: min({{ progress|default:0 }}%, 100%)"></div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Cart Items -->
+    <div class="space-y-3 mb-6">
+        {% for item in cart_items %}
+        <div class="flex gap-3 p-3 bg-white border border-gray-100 rounded-xl">
+            <!-- Image -->
+            <div class="w-20 h-20 rounded-lg overflow-hidden bg-gray-50 flex-shrink-0">
+                {% if item.variant.product.image %}
+                <img src="{{ item.variant.product.image.url }}" alt="" class="w-full h-full object-cover">
+                {% else %}
+                <div class="w-full h-full flex items-center justify-center text-2xl">🧴</div>
+                {% endif %}
+            </div>
+
+            <!-- Details -->
+            <div class="flex-1 min-w-0">
+                {% if item.variant.product.brand %}
+                <p class="text-[10px] uppercase tracking-wider text-gray-400">{{ item.variant.product.brand }}</p>
+                {% endif %}
+                <h3 class="text-sm font-semibold truncate">{{ item.variant.product.name }}</h3>
+                <p class="text-xs text-gray-500 mt-0.5">
+                    {{ item.variant.bottle_size.label }} •
+                    <span class="inline-block w-2.5 h-2.5 rounded-full align-middle" style="background: {{ item.variant.bottle_color.hex_color }}"></span>
+                    {{ item.variant.bottle_color.name }}
+                </p>
+
+                <!-- Quantity + Price -->
+                <div class="flex items-center justify-between mt-2">
+                    <div class="flex items-center gap-1">
+                        <form hx-post="{% url 'cart:update' item.id %}" hx-target="body" hx-swap="innerHTML">
+                            {% csrf_token %}
+                            <input type="hidden" name="quantity" value="{{ item.quantity|add:-1 }}">
+                            <button type="submit" class="w-7 h-7 bg-gray-100 rounded-lg flex items-center justify-center text-sm hover:bg-gray-200 transition-colors">−</button>
+                        </form>
+                        <span class="w-8 text-center text-sm font-semibold">{{ item.quantity }}</span>
+                        <form hx-post="{% url 'cart:update' item.id %}" hx-target="body" hx-swap="innerHTML">
+                            {% csrf_token %}
+                            <input type="hidden" name="quantity" value="{{ item.quantity|add:1 }}">
+                            <button type="submit" class="w-7 h-7 bg-gray-100 rounded-lg flex items-center justify-center text-sm hover:bg-gray-200 transition-colors">+</button>
+                        </form>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <span class="text-sm font-bold text-gold-600">£{{ item.line_total|floatformat:2 }}</span>
+                        <form hx-post="{% url 'cart:remove' item.id %}" hx-target="body" hx-swap="innerHTML">
+                            {% csrf_token %}
+                            <button type="submit" class="text-gray-400 hover:text-red-500 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- Discovery Items -->
+        {% for item in discovery_items %}
+        <div class="flex gap-3 p-3 bg-white border border-gold-200 rounded-xl">
+            <div class="w-20 h-20 rounded-lg bg-gradient-to-br from-gold-100 to-gold-50 flex-shrink-0 flex items-center justify-center">
+                <span class="text-2xl">🎁</span>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-[10px] uppercase tracking-wider text-gold-600 font-bold">Discovery Set</p>
+                <h3 class="text-sm font-semibold">{{ item.discovery_set.name }}</h3>
+                <p class="text-xs text-gray-500 mt-0.5">
+                    {% for p in item.selected_products.all %}{{ p.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                </p>
+                <div class="flex items-center justify-between mt-2">
+                    <span class="text-sm font-bold text-gold-600">£{{ item.line_total|floatformat:2 }}</span>
+                    <form hx-post="{% url 'cart:remove_discovery' item.id %}" hx-target="body" hx-swap="innerHTML">
+                        {% csrf_token %}
+                        <button type="submit" class="text-gray-400 hover:text-red-500 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Summary -->
+    <div class="bg-gray-50 rounded-xl p-4 space-y-2">
+        <div class="flex justify-between text-sm">
+            <span class="text-gray-500">Subtotal</span>
+            <span class="font-semibold">£{{ cart.grand_total|floatformat:2 }}</span>
+        </div>
+        <div class="flex justify-between text-sm">
+            <span class="text-gray-500">Delivery</span>
+            <span class="font-semibold {% if qualifies_free_delivery %}text-green-600{% endif %}">
+                {% if qualifies_free_delivery %}FREE{% else %}£3.99{% endif %}
+            </span>
+        </div>
+        <div class="flex justify-between text-base font-bold pt-2 border-t border-gray-200">
+            <span>Total</span>
+            <span class="text-gold-600">
+                {% if qualifies_free_delivery %}
+                    £{{ cart.grand_total|floatformat:2 }}
+                {% else %}
+                    £{{ cart.grand_total|floatformat:2 }}
+                {% endif %}
+            </span>
+        </div>
+    </div>
+
+    <!-- Checkout Button -->
+    <div class="mt-4 space-y-3">
+        <a href="{% url 'orders:checkout' %}"
+           class="block w-full py-3.5 text-center bg-black text-white rounded-xl text-sm font-bold uppercase tracking-wider hover:bg-gold-600 transition-colors">
+            Proceed to Checkout
+        </a>
+        <a href="{% url 'shop:catalog' %}" class="block text-center text-sm text-gray-500 hover:text-gray-700 transition-colors">
+            ← Continue Shopping
+        </a>
+    </div>
+
+    {% else %}
+    <!-- Empty Cart -->
+    <div class="text-center py-16">
+        <div class="text-6xl mb-4">🛒</div>
+        <h2 class="font-display text-xl font-bold mb-2">Your cart is empty</h2>
+        <p class="text-gray-500 text-sm mb-6">Discover our premium fragrance collection</p>
+        <a href="{% url 'shop:catalog' %}"
+           class="inline-flex items-center gap-2 px-6 py-3 bg-black text-white rounded-full text-sm font-medium hover:bg-gold-600 transition-colors">
+            Start Shopping →
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% load humanize %}
+
+<div class="animate-slide-up" x-data="{ selected: [], maxPick: {{ discovery_set.pick_count }} }">
+    <div class="flex justify-between items-center p-4 border-b border-gray-100">
+        <div>
+            <h3 class="font-display text-lg font-bold">{{ discovery_set.name }}</h3>
+            <p class="text-xs text-gray-500">Pick any {{ discovery_set.pick_count }} fragrances</p>
+        </div>
+        <button onclick="closeProductModal()" class="p-1 hover:bg-gray-100 rounded-full">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    </div>
+
+    <div class="p-4">
+        <!-- Price -->
+        <div class="flex items-baseline gap-3 mb-4">
+            <span class="text-2xl font-bold text-gold-600">£{{ discovery_set.price }}</span>
+            {% if discovery_set.original_price %}
+            <span class="text-sm text-gray-400 line-through">£{{ discovery_set.original_price }}</span>
+            <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">
+                Save £{{ discovery_set.savings }}
+            </span>
+            {% endif %}
+        </div>
+
+        <!-- Selection Counter -->
+        <div class="mb-4 p-3 bg-gray-50 rounded-xl flex justify-between items-center">
+            <span class="text-sm">Selected: <strong x-text="selected.length">0</strong> / {{ discovery_set.pick_count }}</span>
+            <span class="text-xs text-gold-600 font-medium" x-show="selected.length === maxPick">✓ Ready to add!</span>
+        </div>
+
+        <!-- Product Grid -->
+        <div class="grid grid-cols-3 gap-2 max-h-80 overflow-y-auto">
+            {% for product in available_products %}
+            <div @click="
+                    if (selected.includes({{ product.id }})) {
+                        selected = selected.filter(id => id !== {{ product.id }});
+                    } else if (selected.length < maxPick) {
+                        selected.push({{ product.id }});
+                    }
+                 "
+                 :class="selected.includes({{ product.id }}) ? 'ring-2 ring-gold-500 bg-gold-50' : 'border-gray-100'"
+                 class="border rounded-xl overflow-hidden cursor-pointer transition-all hover:shadow-md">
+                <div class="aspect-square bg-gray-50">
+                    {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover" loading="lazy">
+                    {% else %}
+                    <div class="w-full h-full flex items-center justify-center text-2xl">🧴</div>
+                    {% endif %}
+                </div>
+                <div class="p-1.5">
+                    <p class="text-[9px] text-gray-400 uppercase">{{ product.brand }}</p>
+                    <p class="text-[10px] font-semibold truncate">{{ product.name }}</p>
+                </div>
+                <!-- Checkmark overlay -->
+                <div x-show="selected.includes({{ product.id }})"
+                     class="absolute top-1 right-1 w-5 h-5 bg-gold-500 rounded-full flex items-center justify-center">
+                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Add to Cart -->
+        <form hx-post="{% url 'cart:add_discovery' %}" hx-target="#cart-badge" hx-swap="outerHTML" class="mt-4">
+            {% csrf_token %}
+            <input type="hidden" name="discovery_set_id" value="{{ discovery_set.id }}">
+            <template x-for="id in selected" :key="id">
+                <input type="hidden" name="product_ids" :value="id">
+            </template>
+            <button type="submit"
+                    :disabled="selected.length !== maxPick"
+                    class="w-full py-3 rounded-xl text-sm font-bold uppercase tracking-wider transition-all"
+                    :class="selected.length === maxPick
+                        ? 'bg-black text-white hover:bg-gold-600'
+                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'">
+                Add Discovery Set to Cart — £{{ discovery_set.price }}
+            </button>
+        </form>
+    </div>
+</div>

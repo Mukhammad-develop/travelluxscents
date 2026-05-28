@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ mood.name }} — {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-6">
+    <!-- Mood Header -->
+    <div class="text-center mb-8">
+        <div class="text-4xl mb-2">{{ mood.icon }}</div>
+        <h1 class="font-display text-3xl font-bold mb-2">{{ mood.name }}</h1>
+        {% if mood.description %}
+        <p class="text-gray-500 max-w-md mx-auto">{{ mood.description }}</p>
+        {% endif %}
+    </div>
+
+    <!-- Products -->
+    {% include 'partials/product_grid.html' %}
+
+    {% if not products %}
+    <div class="text-center py-12">
+        <p class="text-gray-500">No products in this collection yet.</p>
+        <a href="{% url 'shop:catalog' %}" class="text-gold-600 hover:underline mt-2 inline-block">Browse All →</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

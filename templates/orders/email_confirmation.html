@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background: #f5f5f5; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; background: #fff; }
+        .header { background: #000; color: #fff; text-align: center; padding: 30px 20px; }
+        .header h1 { font-size: 24px; margin: 0; letter-spacing: 2px; }
+        .header .gold { color: #D4AF37; }
+        .content { padding: 30px 20px; }
+        .order-id { text-align: center; font-size: 32px; font-weight: bold; color: #D4AF37; letter-spacing: 4px; font-family: monospace; margin: 20px 0; }
+        .section { margin: 20px 0; }
+        .section h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: #999; margin-bottom: 10px; }
+        .item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+        .total { display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; padding-top: 15px; border-top: 2px solid #000; }
+        .total .amount { color: #D4AF37; }
+        .footer { background: #f9f9f9; padding: 20px; text-align: center; font-size: 11px; color: #999; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><span class="gold">Travel</span>Lux<span class="gold">Scents</span></h1>
+            <p style="font-size: 13px; margin-top: 5px; opacity: 0.8;">Order Confirmation</p>
+        </div>
+
+        <div class="content">
+            <p style="font-size: 16px;">Thank you, <strong>{{ order.first_name }}</strong>!</p>
+            <p style="color: #666; font-size: 14px;">Your order has been received and is being processed.</p>
+
+            <div class="order-id">{{ order.order_id }}</div>
+
+            <div class="section">
+                <h3>Items Ordered</h3>
+                {% for item in items %}
+                <div class="item">
+                    <span>{{ item.product_name }} ({{ item.bottle_size }}, {{ item.bottle_color }}) × {{ item.quantity }}</span>
+                    <span>£{{ item.line_total }}</span>
+                </div>
+                {% endfor %}
+                {% for item in discovery_items %}
+                <div class="item">
+                    <span>{{ item.discovery_set_name }} × {{ item.quantity }}</span>
+                    <span>£{{ item.line_total }}</span>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div style="margin-top: 15px;">
+                <div class="item"><span>Subtotal</span><span>£{{ order.subtotal }}</span></div>
+                <div class="item"><span>Delivery</span><span>{% if order.delivery_fee %}£{{ order.delivery_fee }}{% else %}FREE{% endif %}</span></div>
+                <div class="total"><span>Total</span><span class="amount">£{{ order.total }}</span></div>
+            </div>
+
+            <div class="section">
+                <h3>Shipping To</h3>
+                <p style="font-size: 14px;">
+                    {{ order.full_name }}<br>
+                    {{ order.address_line1 }}<br>
+                    {% if order.address_line2 %}{{ order.address_line2 }}<br>{% endif %}
+                    {{ order.city }} {{ order.postcode }}<br>
+                    {{ order.country }}
+                </p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>{{ site_settings.footer_disclaimer }}</p>
+            <p style="margin-top: 10px;">&copy; 2026 {{ site_settings.site_name }}</p>
+        </div>
+    </div>
+</body>
+</html>

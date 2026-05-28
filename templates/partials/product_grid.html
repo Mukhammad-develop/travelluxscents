@@ -1,0 +1,131 @@
+{% load humanize %}
+
+{% if products %}
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+    {% for product in products %}
+    <div class="product-card bg-white rounded-2xl overflow-hidden border border-gray-100 group animate-fade-in"
+         style="animation-delay: {{ forloop.counter0|divisibleby:1 }}ms">
+
+        <!-- Image -->
+        <div class="aspect-square bg-gray-50 relative overflow-hidden cursor-pointer"
+             hx-get="{% url 'shop:product_modal' product.slug %}"
+             hx-target="#product-modal-content">
+
+            {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}"
+                 class="w-full h-full object-cover product-img default-media" loading="lazy">
+            {% else %}
+            <div class="w-full h-full flex items-center justify-center text-5xl default-media">🧴</div>
+            {% endif %}
+
+            {% if product.image_hover %}
+            <img src="{{ product.image_hover.url }}" alt="{{ product.name }} hover"
+                 class="absolute inset-0 w-full h-full object-cover hover-media" loading="lazy">
+            {% endif %}
+
+            {% if product.video_preview %}
+            <video class="absolute inset-0 w-full h-full object-cover hover-media" muted loop
+                   onmouseenter="this.play()" onmouseleave="this.pause()">
+                <source src="{{ product.video_preview.url }}" type="video/mp4">
+            </video>
+            {% endif %}
+
+            <!-- Badges -->
+            {% if product.badges.all %}
+            <div class="absolute top-2 left-2 flex flex-col gap-1">
+                {% for badge in product.badges.all %}
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider badge-shimmer"
+                      style="background: {{ badge.color }}; color: {{ badge.text_color }}">
+                    {{ badge.name }}
+                </span>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Out of stock overlay -->
+            {% if not product.in_stock %}
+            <div class="absolute inset-0 bg-black/50 flex items-center justify-center">
+                <span class="bg-white text-black text-xs font-bold px-3 py-1.5 rounded-full">Out of Stock</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Info -->
+        <div class="p-3 md:p-4 space-y-2">
+            <!-- Brand -->
+            {% if product.brand %}
+            <p class="text-[10px] uppercase tracking-wider text-gray-400 font-medium">{{ product.brand }}</p>
+            {% endif %}
+
+            <!-- Name -->
+            <h3 class="text-sm font-semibold leading-tight line-clamp-2 cursor-pointer hover:text-gold-600 transition-colors"
+                hx-get="{% url 'shop:product_modal' product.slug %}"
+                hx-target="#product-modal-content">
+                {{ product.name }}
+            </h3>
+
+            <!-- Notes -->
+            <div class="flex flex-wrap gap-1">
+                {% for note in product.get_display_notes %}
+                <span class="text-[10px] bg-gray-50 text-gray-600 px-1.5 py-0.5 rounded-md">
+                    {{ note.icon }} {{ note.name }}
+                </span>
+                {% endfor %}
+            </div>
+
+            <!-- Longevity & Gender -->
+            <div class="flex items-center gap-2 text-[10px] text-gray-400">
+                {% if product.longevity %}
+                <span class="flex items-center gap-0.5">⏱ {{ product.longevity.label }}</span>
+                {% endif %}
+                {% if product.gender %}
+                <span>• {{ product.gender.name }}</span>
+                {% endif %}
+            </div>
+
+            <!-- Price + CTA -->
+            <div class="flex items-center justify-between pt-1">
+                {% with product.get_price_range as price_range %}
+                <div>
+                    {% if price_range.0 != price_range.1 and price_range.1 %}
+                    <span class="text-sm font-bold text-gold-600">£{{ price_range.0 }}</span>
+                    <span class="text-xs text-gray-400">– £{{ price_range.1 }}</span>
+                    {% elif price_range.0 %}
+                    <span class="text-sm font-bold text-gold-600">£{{ price_range.0 }}</span>
+                    {% else %}
+                    <span class="text-sm text-gray-400">N/A</span>
+                    {% endif %}
+                </div>
+                {% endwith %}
+
+                {% if product.in_stock %}
+                <button hx-get="{% url 'shop:product_modal' product.slug %}"
+                        hx-target="#product-modal-content"
+                        class="p-2 bg-black text-white rounded-full hover:bg-gold-500 transition-all hover:scale-110">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                </button>
+                {% else %}
+                <!-- Notify me button -->
+                <button hx-get="{% url 'shop:product_modal' product.slug %}"
+                        hx-target="#product-modal-content"
+                        class="text-[10px] px-2 py-1 border border-gray-200 rounded-full text-gray-500 hover:bg-gray-50">
+                    Notify Me
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-16">
+    <div class="text-5xl mb-4">🔍</div>
+    <h3 class="font-display text-xl font-bold mb-2">No perfumes found</h3>
+    <p class="text-gray-500 mb-4">Try adjusting your filters or search terms.</p>
+    <a href="{% url 'shop:catalog' %}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-black text-white rounded-full text-sm font-medium hover:bg-gray-800 transition-colors">
+        View All Products
+    </a>
+</div>
+{% endif %}

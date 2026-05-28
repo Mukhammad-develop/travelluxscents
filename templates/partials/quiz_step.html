@@ -1,0 +1,48 @@
+{% load humanize %}
+
+<div class="animate-fade-in">
+    <!-- Progress -->
+    <div class="flex gap-1 mb-6">
+        {% for i in "12345" %}
+        <div class="flex-1 h-1.5 rounded-full {% if forloop.counter <= step %}bg-gold-500{% else %}bg-gray-200{% endif %} transition-all"></div>
+        {% endfor %}
+    </div>
+
+    <div class="text-center mb-6">
+        <p class="text-xs text-gold-500 font-bold uppercase tracking-wider mb-1">Step {{ step }} of {{ total_steps }}</p>
+        <h3 class="font-display text-xl font-bold">{{ question.title }}</h3>
+        {% if question.subtitle %}
+        <p class="text-sm text-gray-500 mt-1">{{ question.subtitle }}</p>
+        {% endif %}
+    </div>
+
+    <div class="space-y-2" x-data="{ selected: '' }">
+        {% for answer in answers %}
+        <button @click="selected = '{{ answer.value }}'"
+                :class="selected === '{{ answer.value }}' ? 'border-gold-500 bg-gold-50 ring-2 ring-gold-200' : 'border-gray-200 hover:border-gray-300'"
+                class="w-full p-4 border-2 rounded-xl text-left transition-all flex items-center gap-3 group"
+                hx-get="{% url 'quiz:step' step|add:1 %}?{% for k, v in previous_answers.items %}{{ k }}={{ v }}&{% endfor %}step_{{ step }}={{ answer.value }}"
+                hx-target="#quiz-modal-content"
+                hx-swap="innerHTML"
+                hx-trigger="click delay:300ms">
+            {% if answer.icon %}
+            <span class="text-2xl group-hover:scale-110 transition-transform">{{ answer.icon }}</span>
+            {% endif %}
+            <div>
+                <div class="text-sm font-semibold">{{ answer.text }}</div>
+                {% if answer.description %}
+                <div class="text-xs text-gray-500 mt-0.5">{{ answer.description }}</div>
+                {% endif %}
+            </div>
+            <div class="ml-auto">
+                <div :class="selected === '{{ answer.value }}' ? 'bg-gold-500' : 'border-2 border-gray-300'"
+                     class="w-5 h-5 rounded-full flex items-center justify-center transition-all">
+                    <svg x-show="selected === '{{ answer.value }}'" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+            </div>
+        </button>
+        {% endfor %}
+    </div>
+</div>

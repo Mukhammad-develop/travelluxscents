@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Discovery Sets — {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-8">
+    <div class="text-center mb-8">
+        <h1 class="font-display text-3xl font-bold mb-2">Discovery Sets</h1>
+        <p class="text-gray-500">Explore your perfect scent with our curated sample collections.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {% for ds in discovery_sets %}
+        <div class="bg-gradient-to-br from-black to-gray-900 text-white rounded-2xl p-6 relative overflow-hidden group cursor-pointer hover:shadow-2xl transition-shadow"
+             hx-get="{% url 'shop:discovery_set_detail' ds.slug %}"
+             hx-target="#product-modal-content">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-gold-500/10 rounded-full -mr-12 -mt-12"></div>
+            <div class="relative z-10">
+                <div class="text-5xl mb-4">🎁</div>
+                <div class="text-gold-400 text-xs font-bold uppercase tracking-wider mb-1">Pick Any {{ ds.pick_count }}</div>
+                <h3 class="font-display text-xl font-bold mb-2">{{ ds.name }}</h3>
+                <p class="text-sm text-gray-400 mb-4">{{ ds.description }}</p>
+                <div class="flex items-baseline gap-3">
+                    <span class="text-2xl font-bold text-gold-400">£{{ ds.price }}</span>
+                    {% if ds.original_price %}
+                    <span class="text-sm text-gray-500 line-through">£{{ ds.original_price }}</span>
+                    {% endif %}
+                </div>
+                {% if ds.savings %}
+                <div class="mt-2 inline-block bg-green-500/20 text-green-400 text-xs font-bold px-2 py-1 rounded-full">
+                    Save £{{ ds.savings }}
+                </div>
+                {% endif %}
+                <div class="mt-4 text-sm text-gold-300 group-hover:text-gold-200 transition-colors">
+                    Choose your fragrances →
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

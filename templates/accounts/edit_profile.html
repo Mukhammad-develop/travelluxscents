@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Profile — {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto px-4 py-6">
+    <h1 class="font-display text-2xl font-bold mb-6">Edit Profile</h1>
+
+    <form method="POST" class="space-y-4">
+        {% csrf_token %}
+
+        <div class="grid grid-cols-2 gap-3">
+            <div>
+                <label class="text-xs text-gray-500 mb-1 block">First Name</label>
+                <input type="text" name="first_name" value="{{ user.first_name }}"
+                       class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gold-500">
+            </div>
+            <div>
+                <label class="text-xs text-gray-500 mb-1 block">Last Name</label>
+                <input type="text" name="last_name" value="{{ user.last_name }}"
+                       class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gold-500">
+            </div>
+        </div>
+
+        <div>
+            <label class="text-xs text-gray-500 mb-1 block">Phone</label>
+            <input type="tel" name="phone" value="{{ profile.phone }}"
+                   class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gold-500">
+        </div>
+
+        <div>
+            <label class="text-xs text-gray-500 mb-1 block">Address Line 1</label>
+            <input type="text" name="address_line1" value="{{ profile.address_line1 }}"
+                   class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gold-500">
+        </div>
+
+        <div>
+            <label class="text-xs text-gray-500 mb-1 block">Address Line 2</label>
+            <input type="text" name="address_line2" value="{{ profile.address_line2 }}"
+                   class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gold-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+            <div>
+                <label class="text-xs text-gray-500 mb-1 block">City</label>
+                <input type="text" name="city" value="{{ profile.city }}"
+                       class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gold-500">
+            </div>
+            <div>
+                <label class="text-xs text-gray-500 mb-1 block">County</label>
+                <input type="text" name="county" value="{{ profile.county }}"
+                       class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gold-500">
+            </div>
+        </div>
+
+        <div>
+            <label class="text-xs text-gray-500 mb-1 block">Postcode</label>
+            <input type="text" name="postcode" value="{{ profile.postcode }}"
+                   class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gold-500">
+        </div>
+
+        <div class="flex gap-3 pt-2">
+            <a href="{% url 'accounts:dashboard' %}"
+               class="flex-1 py-3 text-center border border-gray-200 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors">
+                Cancel
+            </a>
+            <button type="submit"
+                    class="flex-1 py-3 bg-black text-white rounded-xl text-sm font-bold hover:bg-gold-600 transition-colors">
+                Save Changes
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

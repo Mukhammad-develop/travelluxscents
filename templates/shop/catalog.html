@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ site_settings.site_name }} — Premium Fragrance Decants{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4" x-data="{ showFilters: false }">
+
+    <!-- Mood Collections Bar -->
+    {% if moods %}
+    <div class="py-4 overflow-x-auto scrollbar-hide -mx-4 px-4">
+        <div class="flex gap-3 min-w-max">
+            <a href="{% url 'shop:catalog' %}"
+               class="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all
+                      {% if not current_filters.mood %}bg-black text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                All
+            </a>
+            {% for mood in moods %}
+            <a href="?mood={{ mood.slug }}"
+               class="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap
+                      {% if current_filters.mood == mood.slug %}bg-black text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                {{ mood.icon }} {{ mood.name }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Discovery Sets Banner -->
+    {% if discovery_sets %}
+    <div class="my-6">
+        <div class="flex gap-4 overflow-x-auto scrollbar-hide -mx-4 px-4 pb-2">
+            {% for ds in discovery_sets %}
+            <div class="flex-shrink-0 w-64 bg-gradient-to-br from-black to-gray-900 text-white rounded-2xl p-5 relative overflow-hidden group cursor-pointer"
+                 hx-get="{% url 'shop:discovery_set_detail' ds.slug %}"
+                 hx-target="#product-modal-content">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-gold-500/10 rounded-full -mr-8 -mt-8"></div>
+                <div class="relative z-10">
+                    <div class="text-gold-400 text-xs font-bold uppercase tracking-wider mb-1">Discovery Set</div>
+                    <h3 class="font-display text-lg font-bold mb-2">{{ ds.name }}</h3>
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-xl font-bold text-gold-400">£{{ ds.price }}</span>
+                        {% if ds.original_price %}
+                        <span class="text-sm text-gray-400 line-through">£{{ ds.original_price }}</span>
+                        {% endif %}
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2">{{ ds.description }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Toolbar -->
+    <div class="flex items-center justify-between py-4 border-b border-gray-100">
+        <div class="flex items-center gap-3">
+            <button @click="showFilters = !showFilters"
+                    class="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-xl text-sm hover:bg-gray-50 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                </svg>
+                Filters
+            </button>
+            <span class="text-sm text-gray-500">{{ products|length }} product{{ products|length|pluralize }}</span>
+        </div>
+
+        <select onchange="window.location.href='?sort=' + this.value + '{% if current_filters.q %}&q={{ current_filters.q }}{% endif %}{% if current_filters.mood %}&mood={{ current_filters.mood }}{% endif %}{% if current_filters.gender %}&gender={{ current_filters.gender }}{% endif %}'"
+                class="text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-gold-500">
+            <option value="default" {% if current_filters.sort == 'default' %}selected{% endif %}>Featured</option>
+            <option value="newest" {% if current_filters.sort == 'newest' %}selected{% endif %}>Newest</option>
+            <option value="price_low" {% if current_filters.sort == 'price_low' %}selected{% endif %}>Price: Low → High</option>
+            <option value="price_high" {% if current_filters.sort == 'price_high' %}selected{% endif %}>Price: High → Low</option>
+            <option value="name" {% if current_filters.sort == 'name' %}selected{% endif %}>A → Z</option>
+        </select>
+    </div>
+
+    <!-- Filters Panel -->
+    <div x-show="showFilters" x-cloak
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 -translate-y-4"
+         x-transition:enter-end="opacity-100 translate-y-0"
+         class="py-4 border-b border-gray-100 space-y-4">
+
+        <!-- Gender -->
+        <div>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Gender</h4>
+            <div class="flex flex-wrap gap-2">
+                {% for g in genders %}
+                <a href="?gender={{ g.slug }}{% if current_filters.mood %}&mood={{ current_filters.mood }}{% endif %}"
+                   class="px-3 py-1.5 rounded-full text-xs font-medium transition-all
+                          {% if current_filters.gender == g.slug %}bg-black text-white{% else %}bg-gray-100 hover:bg-gray-200{% endif %}">
+                    {{ g.name }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Notes -->
+        <div>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Fragrance Notes</h4>
+            <div class="flex flex-wrap gap-2">
+                {% for note in notes|slice:":12" %}
+                <a href="?note={{ note.slug }}"
+                   class="px-3 py-1.5 rounded-full text-xs font-medium transition-all
+                          {% if current_filters.note == note.slug %}bg-black text-white{% else %}bg-gray-100 hover:bg-gray-200{% endif %}">
+                    {{ note.icon }} {{ note.name }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Occasion -->
+        <div>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Occasion</h4>
+            <div class="flex flex-wrap gap-2">
+                {% for occ in occasions %}
+                <a href="?occasion={{ occ.slug }}"
+                   class="px-3 py-1.5 rounded-full text-xs font-medium transition-all
+                          {% if current_filters.occasion == occ.slug %}bg-black text-white{% else %}bg-gray-100 hover:bg-gray-200{% endif %}">
+                    {{ occ.icon }} {{ occ.name }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Longevity -->
+        <div>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Longevity</h4>
+            <div class="flex flex-wrap gap-2">
+                {% for lon in longevities %}
+                <a href="?longevity={{ lon.id }}"
+                   class="px-3 py-1.5 rounded-full text-xs font-medium transition-all
+                          {% if current_filters.longevity == lon.id|stringformat:'d' %}bg-black text-white{% else %}bg-gray-100 hover:bg-gray-200{% endif %}">
+                    {{ lon.label }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Clear -->
+        {% if current_filters.note or current_filters.occasion or current_filters.gender or current_filters.longevity or current_filters.mood or current_filters.badge %}
+        <a href="{% url 'shop:catalog' %}" class="inline-flex items-center gap-1 text-sm text-gold-600 hover:text-gold-700">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+            Clear all filters
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Product Grid -->
+    <div id="product-grid" class="py-6">
+        {% include 'partials/product_grid.html' %}
+    </div>
+
+    <!-- Recently Viewed -->
+    {% if recently_viewed %}
+    <div class="py-8 border-t border-gray-100">
+        <h2 class="font-display text-xl font-bold mb-4">Recently Viewed</h2>
+        <div class="flex gap-4 overflow-x-auto scrollbar-hide -mx-4 px-4 pb-2">
+            {% for product in recently_viewed %}
+            <div class="flex-shrink-0 w-40">
+                <div class="aspect-square rounded-xl bg-gray-50 overflow-hidden mb-2 cursor-pointer"
+                     hx-get="{% url 'shop:product_modal' product.slug %}"
+                     hx-target="#product-modal-content">
+                    {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover" loading="lazy">
+                    {% else %}
+                    <div class="w-full h-full flex items-center justify-center text-3xl">🧴</div>
+                    {% endif %}
+                </div>
+                <p class="text-xs text-gray-500">{{ product.brand }}</p>
+                <p class="text-sm font-semibold truncate">{{ product.name }}</p>
+                {% with product.get_base_price as price %}
+                <p class="text-sm text-gold-600 font-bold">£{{ price }}</p>
+                {% endwith %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

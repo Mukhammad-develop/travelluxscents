@@ -1,0 +1,52 @@
+{% load humanize %}
+
+<div class="animate-fade-in text-center">
+    <!-- Progress Complete -->
+    <div class="flex gap-1 mb-6">
+        {% for i in "12345" %}
+        <div class="flex-1 h-1.5 rounded-full bg-gold-500"></div>
+        {% endfor %}
+    </div>
+
+    <div class="text-4xl mb-3">🎉</div>
+    <h3 class="font-display text-xl font-bold mb-2">Your Perfect Matches!</h3>
+    <p class="text-sm text-gray-500 mb-6">Based on your preferences, we think you'll love these:</p>
+
+    {% if products %}
+    <div class="grid grid-cols-2 gap-3 mb-4">
+        {% for product in products %}
+        <div class="bg-gray-50 rounded-xl overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+             hx-get="{% url 'shop:product_modal' product.slug %}"
+             hx-target="#product-modal-content"
+             onclick="document.querySelector('[x-data]').__x.$data.showQuiz = false">
+            <div class="aspect-square bg-gray-100">
+                {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover" loading="lazy">
+                {% else %}
+                <div class="w-full h-full flex items-center justify-center text-3xl">🧴</div>
+                {% endif %}
+            </div>
+            <div class="p-2">
+                {% if product.brand %}
+                <p class="text-[9px] uppercase tracking-wider text-gray-400">{{ product.brand }}</p>
+                {% endif %}
+                <p class="text-xs font-semibold truncate">{{ product.name }}</p>
+                {% with product.get_base_price as price %}
+                <p class="text-xs text-gold-600 font-bold">£{{ price }}</p>
+                {% endwith %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="py-6">
+        <p class="text-sm text-gray-500">We're still building our recommendation engine. Check out our full catalog!</p>
+    </div>
+    {% endif %}
+
+    <a href="{% url 'shop:catalog' %}"
+       class="inline-flex items-center gap-2 px-5 py-2.5 bg-black text-white rounded-full text-sm font-medium hover:bg-gray-800 transition-colors"
+       onclick="document.querySelector('[x-data]').__x.$data.showQuiz = false">
+        Browse All Perfumes →
+    </a>
+</div>

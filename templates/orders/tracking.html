@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Track Order — {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto px-4 py-12">
+    <h1 class="font-display text-2xl font-bold text-center mb-6">Track Your Order</h1>
+
+    <form method="GET" class="mb-8">
+        <div class="flex gap-2">
+            <input type="text" name="order_id" placeholder="Enter Order ID (e.g. RF7A2K)"
+                   value="{{ request.GET.order_id|default:'' }}"
+                   class="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm uppercase tracking-wider font-mono focus:outline-none focus:ring-2 focus:ring-gold-500"
+                   maxlength="6">
+            <button type="submit"
+                    class="px-6 py-3 bg-black text-white rounded-xl text-sm font-bold hover:bg-gold-600 transition-colors">
+                Track
+            </button>
+        </div>
+    </form>
+
+    {% if error %}
+    <div class="text-center py-8">
+        <div class="text-4xl mb-3">😔</div>
+        <p class="text-gray-500">{{ error }}</p>
+    </div>
+    {% endif %}
+
+    {% if order %}
+    <div class="bg-gray-50 rounded-2xl p-6 animate-fade-in">
+        <div class="text-center mb-4">
+            <p class="text-xs text-gray-500 uppercase tracking-wider">Order</p>
+            <p class="text-2xl font-bold font-mono text-gold-600 tracking-widest">{{ order.order_id }}</p>
+        </div>
+
+        <!-- Status Steps -->
+        <div class="flex justify-between items-center mb-6 px-4">
+            {% with order.status as status %}
+            {% for s_val, s_label in order.STATUS_CHOICES %}
+            <div class="flex flex-col items-center gap-1">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold
+                    {% if s_val == status %}bg-gold-500 text-white
+                    {% elif forloop.counter <= status_order %}bg-green-500 text-white
+                    {% else %}bg-gray-200 text-gray-400{% endif %}">
+                    {% if s_val == 'pending' %}1{% elif s_val == 'paid' %}2{% elif s_val == 'processing' %}3{% elif s_val == 'shipped' %}4{% elif s_val == 'completed' %}5{% else %}✕{% endif %}
+                </div>
+                <span class="text-[9px] text-gray-500 font-medium">{{ s_label }}</span>
+            </div>
+            {% if not forloop.last %}
+            <div class="flex-1 h-0.5 bg-gray-200 mx-1"></div>
+            {% endif %}
+            {% endfor %}
+            {% endwith %}
+        </div>
+
+        <div class="space-y-2 text-sm">
+            <div class="flex justify-between"><span class="text-gray-500">Status</span><span class="font-semibold capitalize">{{ order.get_status_display }}</span></div>
+            <div class="flex justify-between"><span class="text-gray-500">Name</span><span>{{ order.full_name }}</span></div>
+            <div class="flex justify-between"><span class="text-gray-500">Total</span><span class="font-bold text-gold-600">£{{ order.total }}</span></div>
+            <div class="flex justify-between"><span class="text-gray-500">Date</span><span>{{ order.created_at|date:"d M Y" }}</span></div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

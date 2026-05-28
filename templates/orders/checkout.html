@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Checkout — {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-6">
+    <h1 class="font-display text-2xl font-bold mb-6">Checkout</h1>
+
+    <form method="POST" action="{% url 'orders:place_order' %}" class="space-y-6">
+        {% csrf_token %}
+
+        <!-- Contact -->
+        <div class="bg-white border border-gray-100 rounded-xl p-4 space-y-4">
+            <h2 class="font-semibold text-sm uppercase tracking-wider text-gray-500">Contact Details</h2>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-xs text-gray-500 mb-1 block">First Name</label>
+                    <input type="text" name="first_name" required
+                           value="{{ prefill.first_name|default:'' }}"
+                           class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gold-500">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-500 mb-1 block">Last Name</label>
+                    <input type="text" name="last_name" required
+                           value="{{ prefill.last_name|default:'' }}"
+                           class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gold-500">
+                </div>
+            </div>
+
+            <div>
+                <label class="text-xs text-gray-500 mb-1 block">Email</label>
+                <input type="email" name="email" required
+                       value="{{ prefill.email|default:'' }}"
+                       class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gold-500">
+            </div>
+
+            <div>
+                <label class="text-xs text-gray-500 mb-1 block">Phone (optional)</label>
+                <input type="tel" name="phone"
+                       value="{{ prefill.phone|default:'' }}"
+                       class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gold-500">
+            </div>
+        </div>
+
+        <!-- Shipping -->
+        <div class="bg-white border border-gray-100 rounded-xl p-4 space-y-4">
+            <h2 class="font-semibold text-sm uppercase tracking-wider text-gray-500">Shipping Address</h2>
+
+            <div>
+                <label class="text-xs text-gray-500 mb-1 block">Address Line 1</label>
+                <input type="text" name="address_line1" required
+                       value="{{ prefill.address_line1|default:'' }}"
+                       class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gold-500">
+            </div>
+
+            <div>
+                <label class="text-xs text-gray-500 mb-1 block">Address Line 2 (optional)</label>
+                <input type="text" name="address_line2"
+                       value="{{ prefill.address_line2|default:'' }}"
+                       class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gold-500">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-xs text-gray-500 mb-1 block">City</label>
+                    <input type="text" name="city" required
+                           value="{{ prefill.city|default:'' }}"
+                           class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gold-500">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-500 mb-1 block">County</label>
+                    <input type="text" name="county"
+                           value="{{ prefill.county|default:'' }}"
+                           class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gold-500">
+                </div>
+            </div>
+
+            <div>
+                <label class="text-xs text-gray-500 mb-1 block">Postcode</label>
+                <input type="text" name="postcode" required
+                       value="{{ prefill.postcode|default:'' }}"
+                       class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gold-500">
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="bg-gray-50 rounded-xl p-4 space-y-3">
+            <h2 class="font-semibold text-sm uppercase tracking-wider text-gray-500">Order Summary</h2>
+
+            {% for item in cart_items %}
+            <div class="flex justify-between text-sm">
+                <span class="text-gray-600">{{ item.variant.product.name }} ({{ item.variant.bottle_size.label }}) × {{ item.quantity }}</span>
+                <span class="font-semibold">£{{ item.line_total|floatformat:2 }}</span>
+            </div>
+            {% endfor %}
+
+            {% for item in discovery_items %}
+            <div class="flex justify-between text-sm">
+                <span class="text-gray-600">{{ item.discovery_set.name }} × {{ item.quantity }}</span>
+                <span class="font-semibold">£{{ item.line_total|floatformat:2 }}</span>
+            </div>
+            {% endfor %}
+
+            <div class="border-t border-gray-200 pt-2 space-y-1">
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-500">Subtotal</span>
+                    <span>£{{ cart.grand_total|floatformat:2 }}</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-500">Delivery</span>
+                    <span class="{% if qualifies_free %}text-green-600{% endif %}">
+                        {% if qualifies_free %}FREE{% else %}£{{ delivery_fee|floatformat:2 }}{% endif %}
+                    </span>
+                </div>
+                <div class="flex justify-between text-base font-bold pt-1 border-t border-gray-200">
+                    <span>Total</span>
+                    <span class="text-gold-600">£{{ order_total|floatformat:2 }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Notice -->
+        <div class="bg-luxblue-50 border border-luxblue-200 rounded-xl p-4 text-center">
+            <p class="text-sm text-luxblue-700 font-medium">🔒 Secure Stripe Payment</p>
+            <p class="text-xs text-luxblue-500 mt-1">Stripe payment integration will be activated soon. Orders are recorded for processing.</p>
+        </div>
+
+        <!-- Place Order -->
+        <button type="submit"
+                class="w-full py-4 bg-black text-white rounded-xl text-sm font-bold uppercase tracking-wider hover:bg-gold-600 transition-colors active:scale-[0.98]">
+            Place Order — £{{ order_total|floatformat:2 }}
+        </button>
+
+        {% if not user.is_authenticated %}
+        <p class="text-center text-xs text-gray-500">
+            Have an account? <a href="{% url 'accounts:login' %}?next={% url 'orders:checkout' %}" class="text-gold-600 font-medium hover:underline">Sign in</a> for faster checkout.
+        </p>
+        {% endif %}
+    </form>
+</div>
+{% endblock %}
