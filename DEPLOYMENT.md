@@ -1,4 +1,4 @@
-# TravelLuxScents — cPanel Deployment Guide
+# TravelLuxeScent — cPanel Deployment Guide
 ## UnlimitedWebHosting.co.uk
 
 ---

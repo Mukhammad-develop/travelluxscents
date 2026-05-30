@@ -1,4 +1,4 @@
-# TravelLuxScents 🌿
+# TravelLuxeScent 🌿
 
 > **Premium Fragrance Decants — E-Commerce Store**
 
@@ -126,4 +126,4 @@ travelluxscents/
 
 ## License
 
-Private project — All rights reserved © TravelLuxScents
+Private project — All rights reserved © TravelLuxeScent

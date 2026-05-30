@@ -132,6 +132,6 @@ class DiscoverySetAdmin(admin.ModelAdmin):
 
 
 # Customize admin site
-admin.site.site_header = 'TravelLuxScents Admin'
-admin.site.site_title = 'TravelLuxScents'
+admin.site.site_header = 'TravelLuxeScent Admin'
+admin.site.site_title = 'TravelLuxeScent'
 admin.site.index_title = 'Store Management'

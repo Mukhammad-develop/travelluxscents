@@ -16,7 +16,7 @@ class Command(BaseCommand):
 
         # Site Settings
         settings = SiteSettings.load()
-        settings.site_name = 'TravelLuxScents'
+        settings.site_name = 'TravelLuxeScent'
         settings.tagline = 'Premium Fragrance Decants'
         settings.free_delivery_threshold = 40.00
         settings.free_delivery_text = '✦ Free Delivery Over £40 ✦'

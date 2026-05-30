@@ -4,7 +4,7 @@ from django.utils.text import slugify
 
 
 class SiteSettings(models.Model):
-    site_name = models.CharField(max_length=100, default='TravelLuxScents')
+    site_name = models.CharField(max_length=100, default='TravelLuxeScent')
     tagline = models.CharField(max_length=200, default='Premium Fragrance Decants')
     free_delivery_threshold = models.DecimalField(max_digits=6, decimal_places=2, default=40.00)
     free_delivery_text = models.CharField(max_length=200, default='Free Delivery Over £40')
