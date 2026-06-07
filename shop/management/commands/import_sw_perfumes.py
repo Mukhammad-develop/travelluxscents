@@ -132,19 +132,30 @@ class Command(BaseCommand):
 
                 # Clean Title (strip size suffixes and extra P&P/atomizer text)
                 clean_title = category_title
-                # Remove common swperfumeria suffixes
-                clean_title = re.sub(r'-\s*\d+ml$', '', clean_title, flags=re.IGNORECASE)
-                clean_title = re.sub(r'100% Genuine', '', clean_title, flags=re.IGNORECASE)
-                clean_title = re.sub(r'Sample in \d+ml atomizer free p&p', '', clean_title, flags=re.IGNORECASE)
-                clean_title = re.sub(r'in atomizer free p&p', '', clean_title, flags=re.IGNORECASE)
-                clean_title = re.sub(r'free p&p', '', clean_title, flags=re.IGNORECASE)
-                clean_title = re.sub(r'sample size glass vial.*$', '', clean_title, flags=re.IGNORECASE)
-                clean_title = clean_title.strip(' -–—🍃🌸')
+                clean_title = re.sub(r'100%\s*genuine', '', clean_title, flags=re.IGNORECASE)
+                clean_title = re.sub(r'\b\d+\s*ml\b', '', clean_title, flags=re.IGNORECASE)
+                clean_title = re.sub(r'free\s*(p&p|pp|postage)', '', clean_title, flags=re.IGNORECASE)
+                clean_title = re.sub(r'sample\s*(size)?\s*(glass)?\s*(vial)?\s*(bottle)?', '', clean_title, flags=re.IGNORECASE)
+                clean_title = re.sub(r'refillable\s*travel\s*atomise?r', '', clean_title, flags=re.IGNORECASE)
+                clean_title = re.sub(r'travel\s*(fragrance|perfume)?\s*spray', '', clean_title, flags=re.IGNORECASE)
+                clean_title = re.sub(r'\b(atomisers?|atomizers?|spray|sprays|vial|bottle)\b', '', clean_title, flags=re.IGNORECASE)
+                clean_title = re.sub(r'in\s+atomisers?\s+free\s+p&p', '', clean_title, flags=re.IGNORECASE)
+                clean_title = re.sub(r'perfect\s+travel\s+size', '', clean_title, flags=re.IGNORECASE)
+                clean_title = re.sub(r'special\s+offer', '', clean_title, flags=re.IGNORECASE)
+                clean_title = re.sub(r'multi\s+buy\s+sample\s+set', '', clean_title, flags=re.IGNORECASE)
+                clean_title = re.sub(r'3\s+different\s+sizes?', '', clean_title, flags=re.IGNORECASE)
+                clean_title = re.sub(r'new\s+for\s+\d{4}', '', clean_title, flags=re.IGNORECASE)
+                clean_title = re.sub(r'best\s+quality', '', clean_title, flags=re.IGNORECASE)
+                
+                # clean up extra spaces, punctuation and symbols
+                clean_title = re.sub(r'[-–—🍃🌸⭐️*~•:,\(\)/]', ' ', clean_title)
+                clean_title = ' '.join(clean_title.split())
+                clean_title = clean_title.strip(' .–—🍃🌸⭐️*~•:,\(\)/-')
 
                 slug = slugify(clean_title)
 
-                # Check if a product with the same clean_title already exists to merge variants
-                product = Product.objects.filter(name=clean_title).first()
+                # Check if a product with the same clean_title/slug already exists to merge variants
+                product = Product.objects.filter(slug=slug).first()
                 
                 if not product:
                     # Decide Gender
@@ -244,9 +255,15 @@ class Command(BaseCommand):
                         defaults={'label': f"{ml_val}ml", 'order': ml_val}
                     )
 
-                    # Use product.slug[:25] to make variant_sku unique but under 50 characters
-                    variant_sku = f"{product.slug[:25]}-{bottle_size.size_ml}ml-{transparent_color.slug}"[:50]
-                    ProductVariant.objects.get_or_create(
+                    # Ensure unique SKU across different products to avoid database constraint failures
+                    base_sku = f"{product.slug[:25]}-{bottle_size.size_ml}ml-{transparent_color.slug}"[:45]
+                    variant_sku = base_sku
+                    counter = 1
+                    while ProductVariant.objects.filter(sku=variant_sku).exclude(product=product).exists():
+                        variant_sku = f"{base_sku}-{counter}"
+                        counter += 1
+
+                    variant, created = ProductVariant.objects.get_or_create(
                         product=product,
                         bottle_size=bottle_size,
                         bottle_color=transparent_color,
@@ -256,6 +273,10 @@ class Command(BaseCommand):
                             'sku': variant_sku
                         }
                     )
+                    if not created:
+                        variant.price = v['price']
+                        variant.stock_quantity = 20 if v['in_stock'] else 0
+                        variant.save()
 
                 imported_count += 1
                 self.stdout.write(self.style.SUCCESS(f" -> Processed successfully. Variants: {len(variants_list)}"))
